@@ -1,5 +1,6 @@
 package cpsc441.legacy;
 
+import java.io.PrintWriter;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,10 +21,10 @@ public class TCPClient {
 	// Carriage return + line feed
 	static final String CRLF = "\r\n";
 
-	public static void main_(String[] args) throws UnknownHostException, IOException {
+	public static void main(String[] args) throws UnknownHostException, IOException {
 		// Client socket, connects to port 80 of the google server. This is the
 		// default HTTP server port.
-		Socket socket = new Socket("google.ca", 80);
+		Socket socket = new Socket("people.ucalgary.ca", 80);
 
 		// Input & output from/to the server
 		OutputStream outputStream = socket.getOutputStream();
@@ -36,7 +37,8 @@ public class TCPClient {
 		OutputStreamWriter writer = new OutputStreamWriter(outputStream);
 		
 		// Send the HTTP request
-		writer.append("GET /search?q=" + searchTerm);
+		//writer.append("GET /search?q=" + searchTerm);
+        writer.append("GET /~mghaderi/cpsc441/test/index.html");
 		// We need 2 CRLFs at the end of a HTTP request
 		writer.append(CRLF);
 		writer.append(CRLF);
@@ -51,5 +53,29 @@ public class TCPClient {
 
 		reader.close();
 		writer.close();
+
+        System.out.println("\n\n______________________________________________");
+        //listenSocket();
 	}
+
+
+    public static void listenSocket(){
+        //Create socket connection
+        try{
+            Socket socket = new Socket("google.ca", 80);
+            PrintWriter out = new PrintWriter(socket.getOutputStream(),
+                    true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(
+                    socket.getInputStream()));
+            System.out.print("Echoing:\t"+in.readLine()+CRLF);
+
+        } catch (UnknownHostException e) {
+            System.out.println("Unknown host: google.ca");
+            System.exit(1);
+        } catch  (IOException e) {
+            System.out.println("No I/O");
+            System.exit(1);
+        }
+    }
+
 }

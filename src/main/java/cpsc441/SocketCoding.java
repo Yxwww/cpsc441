@@ -19,8 +19,9 @@ public class SocketCoding {
         ExecutorService clientHandler = Executors.newFixedThreadPool(4);
         // bind to the default address
         ServerSocket server = new ServerSocket(8080);
-
+        System.out.println(server.toString());
         Socket client = server.accept();
+
         clientHandler.submit(new Request(client));
     }
 
@@ -39,6 +40,8 @@ class Request implements Runnable {
     @Override
     public void run() {
         try {
+
+            System.out.println(this.client.toString());
             // by default Java blocks forever. Let's fix that.
             client.setSoTimeout((int)1e4);
 

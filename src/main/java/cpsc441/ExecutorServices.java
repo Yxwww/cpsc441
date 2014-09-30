@@ -9,8 +9,8 @@ import java.util.concurrent.*;
 public class ExecutorServices {
 
     public static void main(String[] args) {
-        //burstyExample();
-        resultExample();
+        burstyExample();
+        //resultExample();
     }
 
     public static void simpleExample() {
