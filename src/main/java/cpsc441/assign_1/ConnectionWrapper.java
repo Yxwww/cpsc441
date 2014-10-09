@@ -118,6 +118,7 @@ public class ConnectionWrapper {
 
             String header = "";
             String wholeContent = "";
+            byte[] buffer = new byte[1048576];
             String line;
             while ((line = reader.readLine()) != null) {
                 //System.out.println("->"+header.indexOf("\n\n"));
@@ -125,11 +126,12 @@ public class ConnectionWrapper {
                 if(!header.contains("\n\n")){
                     header += line+"\n";
                 }else{
-                    wholeContent += line + "\n";
+                    wholeContent += line;
                 }
             }
             System.out.println("********************************************\n"+ header+wholeContent);
-            this.responseHeader = header;
+            //this.responseHeader = header;
+            this.content = new ConnectionContent(header,wholeContent);
             //this.content = new ConnectionContent();
 /*
             if(this.responseHeader.toLowerCase().contains("text/html")){
@@ -197,7 +199,7 @@ public class ConnectionWrapper {
     }
     public void saveFile(){
         try{
-            if(!this.responseHeader.contains("404")){
+            if(this.content.header.contains("200")){
                 File file = new File(this.url.getHost()+this.url.getFile());
                 file.getParentFile().mkdirs();
                 /*
