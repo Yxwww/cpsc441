@@ -21,7 +21,7 @@ public class ConnectionContent {
     public byte[] data;
     public String contentType;
     public int contentSize;
-    public List<String> links = new LinkedList<String>();
+    public List<String> links;
    /* public ConnectionContent(int size){
         System.out.println("in the content buffer size->"+size);
         this.html="";
@@ -33,14 +33,19 @@ public class ConnectionContent {
     public ConnectionContent(String header, byte[] data){
         this.header = header;
         parseHeader();
-        this.data = data;
-        if(this.contentType.contains("html")){
-            detectLinks();
-        }
+        System.out.println("HEADER:\n"+this.header);
+        System.out.println("^^^^^^^^^^^^^^^^");
+        if(this.header.contains("200") || this.header.contains("OK")) {
+            this.data = data;
+        }else if(this.header.contains("404")){
 
+            this.data = header.substring(this.header.length(),header.length()).getBytes();
+            System.out.println("header to data:"+this.dataToString());
+        }
+        this.links = new LinkedList<String>();
     }
     public void detectLinks(){
-        if(this.contentType.contains("html")){
+        if(this.contentType.contains("html") && this.header.contains("200")){
             String contentDUP = dataToString();
             while(contentDUP.contains("href=\"")){
                 int start = contentDUP.indexOf("href=\"")+6;
@@ -64,19 +69,23 @@ public class ConnectionContent {
     }
 
     public void parseHeader(){
-        String lines[] = this.header.split("\\r?\\n");
-        //this.headerArray = new String[lines.length];
-        for(int i=0;i<lines.length;i++){
-            String currentLine = lines[i];
-            String[] headerContent = currentLine.split(":");
-            //System.out.println(Arrays.toString(headerContent));
-            if(headerContent[0].trim().equalsIgnoreCase("Content-Type")){
-                contentTypeParser(headerContent[1]);
-            }else if(headerContent[0].trim().equalsIgnoreCase("Content-Length")){
-                contentSizeParser(headerContent[1]);
+        if(this.header.contains("200")) {
+            String lines[] = this.header.split("\\r?\\n");
+            //this.headerArray = new String[lines.length];
+            for (int i = 0; i < lines.length; i++) {
+                String currentLine = lines[i];
+                String[] headerContent = currentLine.split(":");
+                //System.out.println(Arrays.toString(headerContent));
+                if (headerContent[0].trim().equalsIgnoreCase("Content-Type")) {
+                    contentTypeParser(headerContent[1]);
+                } else if (headerContent[0].trim().equalsIgnoreCase("Content-Length")) {
+                    contentSizeParser(headerContent[1]);
+                }
             }
+        }else if(this.header.contains("404")){
+            String newHeader = this.header.substring(0,this.header.indexOf("\r\n\r\n"));
+            this.header = newHeader;
         }
-
     }
     public void contentTypeParser(String contentType){
         this.contentType = contentType.trim();
@@ -89,15 +98,18 @@ public class ConnectionContent {
     public void saveToPath(String path){
         try{
             System.out.println("-> Saving to "+path);
+            System.out.println(dataToString());
             File file = new File(path);
-            file.getParentFile().mkdirs();
-            FileOutputStream out=new FileOutputStream(file);
             if(file.exists()){
                 System.out.println("File exits, deleting ...");
                 file.delete();
             }
-            //System.out.println("data length: "+this.data.length);
-            out.write(this.data,0,this.contentSize);
+            file.getParentFile().mkdirs();
+            FileOutputStream out=new FileOutputStream(file);
+
+            System.out.println("data length: "+this.contentSize);
+            //System.out.println(dataToString());
+            out.write(this.data,0,this.data.length);
             out.close();
 
         }catch(IOException e){
