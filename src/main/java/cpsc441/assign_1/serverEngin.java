@@ -1,11 +1,12 @@
-package cpsc441.testing;
+package cpsc441.assign_1;
+
 
 /**
- * Created by YX on 10/10/2014.
+ * Created by Yx on 10/10/2014.
  */
-public class engin {
+public class serverEngin {
     public static void main(String[] args){
-        ThreadPooledServer server = new ThreadPooledServer(3000);
+        WebServer server = new WebServer(3000);
         new Thread(server).start();
 
         try {

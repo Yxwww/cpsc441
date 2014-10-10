@@ -5,8 +5,13 @@ package cpsc441.testing;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.io.File;
+import java.io.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class ThreadPooledServer implements Runnable{
 
@@ -19,18 +24,24 @@ public class ThreadPooledServer implements Runnable{
 
     public ThreadPooledServer(int port){
         this.serverPort = port;
+        System.out.println("Initialize server on port: "+ this.serverPort);
     }
 
     public void run(){
         synchronized(this){
             this.runningThread = Thread.currentThread();
         }
-        openServerSocket();
+        serverStarts();
         System.out.println("Server starts at port: "+this.serverPort);
-        while(! isStopped()){
+        while(!this.isStopped()){
+            //creates clients socket
             Socket clientSocket = null;
+            // creates IO
             try {
+                // accept client socket
                 clientSocket = this.serverSocket.accept();
+                //inputStream.close();
+
             } catch (IOException e) {
                 if(isStopped()) {
                     System.out.println("Server Stopped.") ;
@@ -39,9 +50,11 @@ public class ThreadPooledServer implements Runnable{
                 throw new RuntimeException(
                         "Error accepting client connection", e);
             }
+            // handles creatd... for each client
             this.threadPool.execute(
                     new WorkerRunnable(clientSocket,
-                            "Thread Pooled Server "+this.threadPool));
+                            "Thread Pooled Server " + this.threadPool));
+
         }
         this.threadPool.shutdown();
         System.out.println("Server Stopped.") ;
@@ -61,11 +74,11 @@ public class ThreadPooledServer implements Runnable{
         }
     }
 
-    private void openServerSocket() {
+    private void serverStarts() {
         try {
             this.serverSocket = new ServerSocket(this.serverPort);
         } catch (IOException e) {
-            throw new RuntimeException("Cannot open port"+this.serverPort, e);
+            throw new RuntimeException("Can not open server on port :"+this.serverPort, e);
         }
     }
 }
