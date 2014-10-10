@@ -125,16 +125,25 @@ public class ConnectionWrapper {
         //System.out.println(this.content.buffer);
     }
 
+    // Scan all the links and downlaod them.
     public void scan_download(){
         if(this.content.contentType.contains("html")){
-            // make sure links are detected
+            // make sure links are detecteds
             if(this.content.links==null){
                 // scan
                 this.content.detectLinks();
             }
             // download each links
             for (String aLink: this.content.links){
-                System.out.println(this.url.getHost()+this.url.getPath()+aLink);
+                if(aLink.contains("http:") || aLink.contains("https:")){
+                    //TODO: add external link handler
+                }else{
+                    //if the link is hosted by current host
+
+                    String[] splitted = this.url.getPath().split("/");
+                    System.out.println();
+                    System.out.println(splitted[splitted.length-1]);
+                }
             }
 
         }else{
