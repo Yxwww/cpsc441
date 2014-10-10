@@ -1,7 +1,15 @@
 package cpsc441.assign_1;
 
+import java.io.*;
 import java.sql.Connection;
 import java.util.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import sun.misc.BASE64Decoder;
+
 /**
  * Created by Yx on 10/1/2014.
  */
@@ -10,10 +18,10 @@ public class ConnectionContent {
     public byte[] buffer;// BUFFERSIZE
     public String header;
     //public String[] headerArray;
-    public String data;
+    public byte[] data;
     public String contentType;
-    public List<String> links = new LinkedList<String>();
     public int contentSize;
+    public List<String> links = new LinkedList<String>();
    /* public ConnectionContent(int size){
         System.out.println("in the content buffer size->"+size);
         this.html="";
@@ -22,43 +30,43 @@ public class ConnectionContent {
     /*
     * Constructor initialize connection content and data
     * */
-    public ConnectionContent(String header, String data){
+    public ConnectionContent(String header, byte[] data){
         this.header = header;
         parseHeader();
         this.data = data;
-    }
-    private void detectLinks(String content){
-        String contentDUP = content;
-        while(contentDUP.contains("href=\"")){
-            int start = contentDUP.indexOf("href=\"")+6;
-            int end = contentDUP.indexOf("\"",start);
-            //System.out.println(start+"-"+end+" < within "+ contentDUP.length());
-            links.add(contentDUP.substring(start,end));
-            contentDUP = contentDUP.substring(end,contentDUP.length());
+        if(this.contentType.contains("html")){
+            detectLinks();
         }
 
     }
-    // setter for HTML content and detects all the links in the content
-    public void setContent(String content){
-        this.html = content;
-        if(!this.links.isEmpty()){
-            this.links.clear();
+    public void detectLinks(){
+        if(this.contentType.contains("html")){
+            String contentDUP = dataToString();
+            while(contentDUP.contains("href=\"")){
+                int start = contentDUP.indexOf("href=\"")+6;
+                int end = contentDUP.indexOf("\"",start);
+                //System.out.println(start+"-"+end+" < within "+ contentDUP.length());
+                links.add(contentDUP.substring(start,end));
+                contentDUP = contentDUP.substring(end,contentDUP.length());
+            }
         }
-        detectLinks(this.html);          // detect the links from the HTML content.
     }
-    ///
-    public String bufferToString(){
-        return new String(this.buffer);
-    }
-    public void printBuffer(){
-        System.out.println(new String(this.buffer));
+    // convert byte array data to String
+    public String dataToString(){
+        try{
+            String dataToString = new String(this.data, "UTF-8");
+            return dataToString;
+        }catch (UnsupportedEncodingException e){
+            System.out.println("Unable to save the link");
+            return null;
+        }
+
     }
 
     public void parseHeader(){
         String lines[] = this.header.split("\\r?\\n");
         //this.headerArray = new String[lines.length];
         for(int i=0;i<lines.length;i++){
-            System.out.println(lines[i]);
             String currentLine = lines[i];
             String[] headerContent = currentLine.split(":");
             //System.out.println(Arrays.toString(headerContent));
@@ -72,11 +80,32 @@ public class ConnectionContent {
     }
     public void contentTypeParser(String contentType){
         this.contentType = contentType.trim();
-        System.out.println("Parsing content type: "+ this.contentType);
+        //System.out.println("Parsing content type: "+ this.contentType);
     }
     public void contentSizeParser(String contentSize){
         this.contentSize = Integer.parseInt(contentSize.trim());
-        System.out.println("Parsing content size: "+ this.contentSize);
+        //System.out.println("Parsing content size: "+ this.contentSize);
+    }
+    public void saveToPath(String path){
+        try{
+            System.out.println("-> Saving to "+path);
+            File file = new File(path);
+            file.getParentFile().mkdirs();
+            FileOutputStream out=new FileOutputStream(file);
+            if(file.exists()){
+                System.out.println("File exits, deleting ...");
+                file.delete();
+            }
+            //System.out.println("data length: "+this.data.length);
+            out.write(this.data,0,this.contentSize);
+            out.close();
+
+        }catch(IOException e){
+            System.out.println(e);
+        }
     }
 
+    /*public static byte[] decodeImage(String imageDataString) {
+        return Convert.FromBase64String(imageDataString);
+    }*/
 }
