@@ -125,10 +125,6 @@ public class ConnectionWrapper {
                 System.out.println("page 404, I don't want to save !");
             }
     }
-    public void printContent(){
-        System.out.println("Printing HTML content: ");
-        //System.out.println(this.content.buffer);
-    }
 
     // Scan all the links and downlaod them.
     public void scan_download(){

@@ -22,14 +22,7 @@ public class ConnectionContent {
     public String contentType;
     public int contentSize;
     public List<String> links;
-   /* public ConnectionContent(int size){
-        System.out.println("in the content buffer size->"+size);
-        this.html="";
-        this.buffer = new byte[size];
-    }*/
-    /*
-    * Constructor initialize connection content and data
-    * */
+
     public ConnectionContent(String header, byte[] data){
         this.header = header;
         parseHeader();
@@ -98,7 +91,7 @@ public class ConnectionContent {
     public void saveToPath(String path){
         try{
             System.out.println("-> Saving to "+path);
-            System.out.println(dataToString());
+            //System.out.println(dataToString());
             File file = new File(path);
             if(file.exists()){
                 System.out.println("File exits, deleting ...");
@@ -116,8 +109,4 @@ public class ConnectionContent {
             System.out.println(e);
         }
     }
-
-    /*public static byte[] decodeImage(String imageDataString) {
-        return Convert.FromBase64String(imageDataString);
-    }*/
 }
