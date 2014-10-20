@@ -5,7 +5,6 @@ import java.net.Socket;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.net.*;
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 /**
@@ -84,19 +83,34 @@ public class ConnectionWrapper {
             writer.append("GET " + this.url.getFile() + " HTTP/1.0\r\n\r\n");
             writer.flush();
 
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[512];
             String header = "";
             LinkedList<byte[]> wholeData = new LinkedList<byte[]>();
             int length = 0;
             int totalLength = 0;
             while ((length = inputStream.read(buffer)) != -1) {
-                if ((header).indexOf("\r\n\r\n") == -1) {
+
+                if(new String(Arrays.copyOfRange(buffer,0,length)).indexOf("\r\n\r\n")!=-1 && header.length()==0){
+                    int indexOfHeaderEnd =(new String(Arrays.copyOfRange(buffer,0,length)).indexOf("\r\n\r\n")+4);
+                    System.out.println("END of header: "+indexOfHeaderEnd + " - length: "+length);
+                    header += new String(Arrays.copyOfRange(buffer,0,length)).substring(0,indexOfHeaderEnd);
+                    System.out.println(header);
+                    if(indexOfHeaderEnd<length){
+                        wholeData.push(Arrays.copyOfRange(buffer, indexOfHeaderEnd, length));
+                        totalLength += (length-indexOfHeaderEnd);
+                    }
+                }else{
+                    wholeData.push(Arrays.copyOfRange(buffer, 0, length));
+                    totalLength += length;
+                }
+                //System.out.println("header splitter: "+new String(Arrays.copyOfRange(buffer,0,length)).indexOf("\r\n\r\n"));
+                /*if ((header).indexOf("\r\n\r\n") == -1) {
                     //System.out.println(length);
                     header += new String(Arrays.copyOfRange(buffer,0,length), "UTF-8");
                 } else {
                     wholeData.push(Arrays.copyOfRange(buffer, 0, length));
                     totalLength += length;
-                }
+                }*/
             }
             //saving data to associated object
             byte[] finalData = new byte[totalLength];
@@ -108,6 +122,7 @@ public class ConnectionWrapper {
                 }
                 //System.out.println(i + " :: "+totalLengthCounter);
             }
+            System.out.println(totalLength + " - " + wholeData.size());
 
             this.content = new ConnectionContent(header, finalData);
             writer.close();
@@ -116,12 +131,17 @@ public class ConnectionWrapper {
         }catch (IOException e){
                 System.out.println("IO Exception Thrown: "+ e);
         }
-    }// end of download
+    }// end of downloadf
     public void saveFile(){
             if(this.content.header.contains("200")){
-                this.content.saveToPath(this.url.getHost()+this.url.getFile());
+                if(this.content.header.contains("gif")){
+                    System.out.println(this.content.header);
+                }
+
+
+                this.content.saveToPath("server_data/"+this.url.getHost()+this.url.getFile());
             }else if(this.content.header.contains("404")){
-                this.content.saveToPath(this.url.getHost()+this.url.getFile());
+                this.content.saveToPath("server_data/"+this.url.getHost()+this.url.getFile());
                 System.out.println("page 404, I don't want to save !");
             }
     }

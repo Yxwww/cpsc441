@@ -1,14 +1,10 @@
 package cpsc441.assign_1;
 
 import java.io.*;
-import java.sql.Connection;
 import java.util.*;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import sun.misc.BASE64Decoder;
 
 /**
  * Created by Yx on 10/1/2014.
@@ -26,26 +22,34 @@ public class ConnectionContent {
     public ConnectionContent(String header, byte[] data){
         this.header = header;
         parseHeader();
-        System.out.println("HEADER:\n"+this.header);
-        System.out.println("^^^^^^^^^^^^^^^^");
+        //System.out.println("HEADER:\n"+this.header);
+        //System.out.println("^^^^^^^^^^^^^^^^");
         if(this.header.contains("200") || this.header.contains("OK")) {
             this.data = data;
         }else if(this.header.contains("404")){
 
             this.data = header.substring(this.header.length(),header.length()).getBytes();
-            System.out.println("header to data:"+this.dataToString());
+            //System.out.println("header to data:"+this.dataToString());
         }
         this.links = new LinkedList<String>();
     }
     public void detectLinks(){
         if(this.contentType.contains("html") && this.header.contains("200")){
             String contentDUP = dataToString();
-            while(contentDUP.contains("href=\"")){
-                int start = contentDUP.indexOf("href=\"")+6;
-                int end = contentDUP.indexOf("\"",start);
-                //System.out.println(start+"-"+end+" < within "+ contentDUP.length());
-                links.add(contentDUP.substring(start,end));
-                contentDUP = contentDUP.substring(end,contentDUP.length());
+            while(contentDUP.contains("href=\"") ||contentDUP.contains("src=\"")  ){
+                if(contentDUP.contains("href=\"")){
+                    int start = contentDUP.indexOf("href=\"")+6;
+                    int end = contentDUP.indexOf("\"",start);
+                    //System.out.println(start+"-"+end+" < within "+ contentDUP.length());
+                    links.add(contentDUP.substring(start,end));
+                    contentDUP = contentDUP.substring(end,contentDUP.length());
+                }else if(contentDUP.contains("src=\"")){
+                    int start = contentDUP.indexOf("src=\"")+5;
+                    int end = contentDUP.indexOf("\"",start);
+                    //System.out.println(start+"-"+end+" < within "+ contentDUP.length());
+                    links.add(contentDUP.substring(start,end));
+                    contentDUP = contentDUP.substring(end,contentDUP.length());
+                }
             }
         }
     }
@@ -76,8 +80,9 @@ public class ConnectionContent {
                 }
             }
         }else if(this.header.contains("404")){
-            String newHeader = this.header.substring(0,this.header.indexOf("\r\n\r\n"));
-            this.header = newHeader;
+            System.out.println(this.header);
+            //String newHeader = this.header.substring(0,this.header.indexOf("\r\n\r\n"));
+            //this.header = newHeader;
         }
     }
     public void contentTypeParser(String contentType){
